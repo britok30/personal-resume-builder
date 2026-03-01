@@ -181,7 +181,7 @@ export const initialResumeData: ResumeData = {
     "Payments & Services": ["Stripe", "RevenueCat"],
     "Testing & Quality": ["Jest", "React Testing Library", "Storybook"],
     "Tools & Platforms": ["Git", "Github", "Vercel", "AWS", "npm/yarn"],
-    "AI & Productivity": ["Claude Code", "AI-Assisted Development"],
+    "AI & Productivity": ["Claude Code", "OpenAI", "AI-Assisted Development"],
     "Design & UI": [
       "Figma",
       "Framer",

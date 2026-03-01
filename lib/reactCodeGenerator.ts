@@ -117,9 +117,8 @@ export default function Resume({ data }: ResumeProps) {
           <h2 className="text-base font-semibold text-blue-600 mb-4 uppercase tracking-wide">
             Experience
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-5">
             {data.experience.map((exp, index) => {
-              // Helper component for title and dates
               const TitleAndDates = ({ title, startDate, endDate, current, company }: {
                 title: string;
                 startDate: string;
@@ -139,9 +138,8 @@ export default function Resume({ data }: ResumeProps) {
               );
 
               let titleSection;
-              
+
               if (exp.promotions && exp.promotions.length > 0) {
-                // Show all positions at this company (original + promotions)
                 const allPositions = [
                   {
                     title: exp.title,
@@ -151,10 +149,9 @@ export default function Resume({ data }: ResumeProps) {
                   },
                   ...exp.promotions
                 ];
-                
-                // Sort by start date (most recent first for display)
+
                 allPositions.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-                
+
                 titleSection = allPositions.map((pos, posIndex) => (
                   <TitleAndDates
                     key={posIndex}
@@ -166,7 +163,6 @@ export default function Resume({ data }: ResumeProps) {
                   />
                 ));
               } else {
-                // Single position
                 titleSection = (
                   <TitleAndDates
                     title={exp.title}
@@ -181,14 +177,16 @@ export default function Resume({ data }: ResumeProps) {
               return (
                 <div key={index}>
                   {titleSection}
-                  <ul className="space-y-0.5 mt-1">
-                    {exp.description.map((desc, descIndex) => (
-                      <li key={descIndex} className="text-gray-700 text-xs leading-tight flex">
-                        <span className="mr-1.5 flex-shrink-0">•</span>
-                        <span>{desc}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {exp.description.length > 0 && (
+                    <ul className="space-y-0.5 mt-1">
+                      {exp.description.map((desc, descIndex) => (
+                        <li key={descIndex} className="text-gray-700 text-xs leading-tight flex">
+                          <span className="mr-1.5 flex-shrink-0">•</span>
+                          <span>{desc}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               );
             })}

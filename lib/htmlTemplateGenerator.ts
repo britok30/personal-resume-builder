@@ -67,10 +67,9 @@ export function generateHtmlTemplate(data: ResumeData): string {
     <!-- Left Two Columns - Experience -->
     <div class="col-span-2 pr-3">
       <h2 class="text-base font-semibold text-blue-600 mb-4 uppercase tracking-wide">Experience</h2>
-      <div class="space-y-4">
+      <div class="space-y-5">
         ${data.experience
           .map((exp) => {
-            // Helper function to format title and dates
             const formatTitleAndDates = (
               title: string,
               startDate: string,
@@ -91,7 +90,6 @@ export function generateHtmlTemplate(data: ResumeData): string {
             let titleSection = "";
 
             if (exp.promotions && exp.promotions.length > 0) {
-              // Show all positions at this company (original + promotions)
               const allPositions = [
                 {
                   title: exp.title,
@@ -102,7 +100,6 @@ export function generateHtmlTemplate(data: ResumeData): string {
                 ...exp.promotions,
               ];
 
-              // Sort by start date (most recent first for display)
               allPositions.sort(
                 (a, b) =>
                   new Date(b.startDate).getTime() -
@@ -121,7 +118,6 @@ export function generateHtmlTemplate(data: ResumeData): string {
                 )
                 .join("");
             } else {
-              // Single position
               titleSection = formatTitleAndDates(
                 exp.title,
                 exp.startDate,
@@ -131,20 +127,24 @@ export function generateHtmlTemplate(data: ResumeData): string {
               );
             }
 
+            const descriptionSection = exp.description.length > 0
+              ? `<ul class="space-y-0.5 mt-1">
+                  ${exp.description
+                    .map(
+                      (desc) =>
+                        `<li class="text-gray-700 text-xs leading-tight flex">
+                          <span class="mr-1.5 flex-shrink-0">•</span>
+                          <span>${desc}</span>
+                        </li>`
+                    )
+                    .join("")}
+                </ul>`
+              : "";
+
             return `
           <div>
             ${titleSection}
-            <ul class="space-y-0.5 mt-1">
-              ${exp.description
-                .map(
-                  (desc) =>
-                    `<li class="text-gray-700 text-xs leading-tight flex">
-                      <span class="mr-1.5 flex-shrink-0">•</span>
-                      <span>${desc}</span>
-                    </li>`
-                )
-                .join("")}
-            </ul>
+            ${descriptionSection}
           </div>
         `;
           })
