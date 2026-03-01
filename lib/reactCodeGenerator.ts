@@ -52,9 +52,9 @@ interface ResumeProps {
 
 export default function Resume({ data }: ResumeProps) {
   return (
-    <div className="font-sans text-sm text-gray-900 bg-white p-8 leading-normal">
+    <div className="font-sans text-sm text-gray-900 bg-white px-8 py-6 leading-normal">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-4">
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-2">
             <h1 className="text-3xl font-bold text-blue-600 mb-1">
@@ -117,7 +117,7 @@ export default function Resume({ data }: ResumeProps) {
           <h2 className="text-base font-semibold text-blue-600 mb-4 uppercase tracking-wide">
             Experience
           </h2>
-          <div className="space-y-5">
+          <div className="space-y-3">
             {data.experience.map((exp, index) => {
               const TitleAndDates = ({ title, startDate, endDate, current, company }: {
                 title: string;

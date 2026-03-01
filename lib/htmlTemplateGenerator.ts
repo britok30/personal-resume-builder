@@ -24,10 +24,10 @@ export function generateHtmlTemplate(data: ResumeData): string {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script type="module">import "@iframe-resizer/child";</script>
 </head>
-<body class="font-sans text-sm text-gray-900 bg-white p-8 leading-normal">
-  
+<body class="font-sans text-sm text-gray-900 bg-white px-8 py-6 leading-normal">
+
   <!-- Header -->
-  <div class="mb-6">
+  <div class="mb-4">
     <div class="grid grid-cols-3 gap-6">
       <div class="col-span-2">
         <h1 class="text-3xl font-bold text-blue-600 mb-1">${
@@ -66,8 +66,8 @@ export function generateHtmlTemplate(data: ResumeData): string {
   <div class="grid grid-cols-3 gap-6">
     <!-- Left Two Columns - Experience -->
     <div class="col-span-2 pr-3">
-      <h2 class="text-base font-semibold text-blue-600 mb-4 uppercase tracking-wide">Experience</h2>
-      <div class="space-y-5">
+      <h2 class="text-base font-semibold text-blue-600 mb-3 uppercase tracking-wide">Experience</h2>
+      <div class="space-y-3">
         ${data.experience
           .map((exp) => {
             const formatTitleAndDates = (
