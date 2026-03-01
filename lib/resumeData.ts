@@ -65,9 +65,24 @@ export const initialResumeData: ResumeData = {
     linkedin: "linkedin.com/in/kelvin-brito",
     github: "github.com/britok30",
     summary:
-      "Experienced software engineer passionate about building intuitive & modern web applications",
+      "Software engineer with 7+ years of experience building and shipping web and mobile products — from enterprise platforms to self-launched apps reaching millions of users.",
   },
   experience: [
+    {
+      title: "Founder & Product Engineer",
+      company: "Dreamer Apps",
+      location: "Miami, FL",
+      startDate: "Jan 2025",
+      endDate: "Present",
+      current: true,
+      description: [
+        "Launched a portfolio of profitable web and mobile applications that have collectively reached millions of users since 2022, operating as the sole engineer, designer, and decision-maker.",
+        "Architect and ship web products primarily in Next.js, TypeScript, Tailwind, PostgreSQL, and Stripe while adopting whatever frameworks or tools best fit the problem.",
+        "Delivered an iOS application to the App Store using React Native, Expo, and RevenueCat, managing the full native build, review, and deployment pipeline.",
+        "Drive rapid shipping cycles by leveraging AI-assisted development tools like Claude Code and conducting targeted UI/UX research through Figma and Mobbin.",
+        "Advise clients on custom application development, translating business requirements into production-ready products from architecture through deployment.",
+      ],
+    },
     {
       title: "Front-End Engineer",
       company: "Axios",
@@ -84,12 +99,10 @@ export const initialResumeData: ResumeData = {
         },
       ],
       description: [
-        "Collaborated cross-functionally with designers, product managers, and engineers while mentoring junior developers on AxiosHQ's enterprise communication platform using React, TypeScript, and Tailwind.",
-        "Built AI-powered Card Templates widget replacing standard 'add new card' functionality, creating React components that surface 3 AI-generated recommendations with modal navigation and seamless card insertion.",
-        "Designed standardized frontend event tracking system using React hooks and TypeScript interfaces, establishing consistent data logging patterns for user interactions and AI feature analytics.",
-        "Pioneered frontend implementation of initial LLM features including translation tools and topic suggestions, establishing React architecture patterns for AI-driven content assistance.",
-        "Developed Smart Brevity AI v3 sidebar interface using React and TypeScript, creating accessible components that enabled one-click application of writing improvements to TipTap editor content.",
-        "Architected hierarchical commenting system for deck/card structure, implementing React state management for contextual commenting across nested TipTap editor instances.",
+        "Promoted to Senior Front-End Engineer — mentored junior developers and partnered with designers, product managers, and engineers to ship features across AxiosHQ's enterprise communication platform.",
+        "Spearheaded the frontend implementation of multiple AI-powered features including LLM-driven translation, topic suggestions, Smart Brevity AI, and intelligent card templates — establishing the React architecture patterns the team adopted going forward.",
+        "Engineered a standardized event tracking system using React hooks and TypeScript interfaces, creating the analytics foundation for measuring user interactions and AI feature adoption.",
+        "Architected a hierarchical commenting system across nested TipTap editor instances, enabling contextual discussions within the platform's deck and card content structure.",
       ],
     },
     {
@@ -100,8 +113,8 @@ export const initialResumeData: ResumeData = {
       endDate: "Jul 2021",
       current: false,
       description: [
-        "Built frontend features for Trazi's public records SaaS platform, developing interfaces across React/Next.js and Vue/Nuxt applications with custom filtering for efficient business record discovery.",
-        "Engineered high-performance Vue.js dashboard visualizing 10M+ public records, creating scalable data interaction patterns that streamlined business decision-making.",
+        "Developed frontend interfaces across React/Next.js and Vue/Nuxt for Trazi's public records SaaS platform, implementing custom filtering systems for efficient discovery across large datasets.",
+        "Engineered a high-performance Vue.js dashboard that surfaced 10M+ public records with scalable data interaction patterns, directly streamlining business decision-making for end users.",
       ],
     },
     {
@@ -112,8 +125,8 @@ export const initialResumeData: ResumeData = {
       endDate: "Oct 2020",
       current: false,
       description: [
-        "Led all frontend development in two-person team for construction project management platform, building comprehensive Vue.js interfaces for project tracking, photo collection, and revenue calculation.",
-        "Owned frontend overhaul of project management dashboard using Vue.js and Sass, delivering enhanced tracking capabilities that contributed to $11M in company revenue growth.",
+        "Led all frontend development as one of two engineers for a construction project management platform, delivering Vue.js interfaces for project tracking, photo management, and revenue reporting.",
+        "Overhauled the core project management dashboard using Vue.js and Sass, delivering capabilities that contributed to $11M in company revenue growth.",
       ],
     },
     {
@@ -123,10 +136,7 @@ export const initialResumeData: ResumeData = {
       startDate: "Jun 2016",
       endDate: "Dec 2019",
       current: false,
-      description: [
-        "Designed and developed responsive web applications and business websites for diverse clients using React, HTML, CSS, and JavaScript, delivering custom solutions for small businesses and startups across Miami.",
-        "Optimized client applications for performance and accessibility while delivering all projects on time and within budget, maintaining high-quality code standards and building strong client relationships.",
-      ],
+      description: [],
     },
   ],
   education: [
@@ -146,6 +156,8 @@ export const initialResumeData: ResumeData = {
       "JavaScript (ES6+)",
       "TypeScript",
       "React",
+      "React Native",
+      "Expo",
       "Next.js",
       "Vue.js",
       "Sass",
@@ -153,24 +165,27 @@ export const initialResumeData: ResumeData = {
     ],
     "Backend & Database": [
       "Node.js",
-      "SQL",
-      "Firebase",
+      "PostgreSQL",
+      "Supabase",
       "NeonDB",
       "DrizzleORM",
+      "Firebase",
+      "Clerk",
     ],
     "State & Data Management": [
+      "Zustand",
       "Jotai",
-      "Recoil",
       "React Query",
       "REST APIs",
-      "JSON",
     ],
-    "Specialized Tools": ["shadcn", "Storybook"],
+    "Payments & Services": ["Stripe", "RevenueCat"],
     "Testing & Quality": ["Jest", "React Testing Library", "Storybook"],
-    "Tools & Platforms": ["Git", "Github", "Vercel", "AWS (S3)", "npm/yarn"],
+    "Tools & Platforms": ["Git", "Github", "Vercel", "AWS", "npm/yarn"],
+    "AI & Productivity": ["Claude Code", "AI-Assisted Development"],
     "Design & UI": [
       "Figma",
       "Framer",
+      "shadcn",
       "Responsive Design",
       "UI/UX Principles",
       "Web Accessibility",
@@ -179,24 +194,18 @@ export const initialResumeData: ResumeData = {
   },
   projects: [
     {
+      name: "WallStage",
+      url: "https://apps.apple.com/us/app/wallstage-wall-art-previews/id6757448513",
+      description:
+        "iOS mobile app that leverages AI to help artists create realistic wall art mockups for showcasing and selling their work",
+      technologies: ["React Native", "Expo", "TypeScript", "RevenueCat", "AWS", "Next.js"],
+    },
+    {
       name: "ArchitectGPT",
       url: "https://www.architectgpt.io/",
       description:
         "AI-powered architecture and interior design platform enabling instant visual transformations through photo uploads",
       technologies: ["Next.js", "TypeScript", "Firebase"],
-    },
-    {
-      name: " World's Radio",
-      url: "https://www.worldsradio.com/",
-      description:
-        "Global radio streaming platform providing access to thousands of international radio stations with interactive world map",
-      technologies: [
-        "Next.js",
-        "TypeScript",
-        "TailwindCSS",
-        "Mapbox",
-        "Framer Motion",
-      ],
     },
   ],
 };
