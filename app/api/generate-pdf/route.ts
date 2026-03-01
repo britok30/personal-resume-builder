@@ -1,18 +1,44 @@
 // app/api/generate-pdf/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import puppeteer from "puppeteer";
+import puppeteer, { Browser } from "puppeteer";
 import { generateHtmlTemplate } from "@/lib/htmlTemplateGenerator";
 import { ResumeData } from "@/lib/resumeData";
 
+const PDF_TIMEOUT_MS = 30_000;
+
+function sanitizeFilename(name: string): string {
+  return name
+    .replace(/[^\w\s-]/g, "") // strip everything except word chars, spaces, hyphens
+    .replace(/\s+/g, "_") // collapse whitespace to underscores
+    .slice(0, 100); // cap length
+}
+
 export async function POST(request: NextRequest) {
+  let body: unknown;
   try {
-    const resumeData: ResumeData = await request.json();
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid JSON in request body" },
+      { status: 400 }
+    );
+  }
 
-    // Generate HTML content
-    const htmlContent = generateHtmlTemplate(resumeData);
+  const resumeData = body as ResumeData;
 
-    // Launch Puppeteer
-    const browser = await puppeteer.launch({
+  if (!resumeData?.personalInfo?.name) {
+    return NextResponse.json(
+      { error: "Missing required field: personalInfo.name" },
+      { status: 400 }
+    );
+  }
+
+  const htmlContent = generateHtmlTemplate(resumeData);
+  const filename = sanitizeFilename(resumeData.personalInfo.name);
+
+  let browser: Browser | null = null;
+  try {
+    browser = await puppeteer.launch({
       headless: true,
       args: [
         "--no-sandbox",
@@ -24,56 +50,47 @@ export async function POST(request: NextRequest) {
 
     const page = await browser.newPage();
 
-    // Set content and wait for fonts to load
+    // domcontentloaded is sufficient — the template is self-contained.
+    // fonts.ready below handles the only async resource (Google Fonts).
     await page.setContent(htmlContent, {
-      waitUntil: ["networkidle0", "domcontentloaded"],
+      waitUntil: "domcontentloaded",
     });
 
-    // Wait for fonts to load (Google Fonts)
     await page.evaluateHandle("document.fonts.ready");
 
-    // Generate PDF with high quality settings
-    const pdfBuffer = await page.pdf({
-      format: "Letter", // 8.5" x 11"
-      printBackground: true,
-      preferCSSPageSize: false,
-      margin: {
-        top: "0.0in",
-        right: "0.0in",
-        bottom: "0.0in",
-        left: "0.0in",
-      },
-      displayHeaderFooter: false,
-      scale: 1,
-    });
+    const pdfBuffer = await Promise.race([
+      page.pdf({
+        format: "Letter",
+        printBackground: true,
+        preferCSSPageSize: false,
+        margin: { top: "0in", right: "0in", bottom: "0in", left: "0in" },
+        displayHeaderFooter: false,
+        scale: 1,
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("PDF generation timed out")),
+          PDF_TIMEOUT_MS
+        )
+      ),
+    ]);
 
-    await browser.close();
-
-    // Return PDF with proper headers
-    return new NextResponse(pdfBuffer as any, {
+    return new NextResponse(Buffer.from(pdfBuffer), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${resumeData.personalInfo.name.replace(
-          /\s+/g,
-          "_"
-        )}_Resume.pdf"`,
+        "Content-Disposition": `attachment; filename="${filename}_Resume.pdf"`,
         "Content-Length": pdfBuffer.length.toString(),
       },
     });
   } catch (error) {
     console.error("PDF generation error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate PDF" },
-      { status: 500 }
-    );
+    const message =
+      error instanceof Error && error.message === "PDF generation timed out"
+        ? "PDF generation timed out"
+        : "Failed to generate PDF";
+    return NextResponse.json({ error: message }, { status: 500 });
+  } finally {
+    await browser?.close();
   }
-}
-
-// Optional: Add a simple GET endpoint for testing
-export async function GET() {
-  return NextResponse.json({
-    message: "PDF generation endpoint is working. Use POST with resume data.",
-    usage: "POST /api/generate-pdf with ResumeData in body",
-  });
 }

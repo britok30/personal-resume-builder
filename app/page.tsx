@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import IframeResizer from "@iframe-resizer/react";
 import { Button } from "@/components/ui/button";
@@ -20,16 +20,42 @@ import { generateHtmlTemplate } from "@/lib/htmlTemplateGenerator";
 import { generateReactCode } from "@/lib/reactCodeGenerator";
 import { useGeneratePdf } from "./hooks/useGeneratePdf";
 
+const STORAGE_KEY = "resume-builder-data";
+
 export default function TabbedResumeBuilder() {
-  const [jsonData, setJsonData] = useState(
-    JSON.stringify(initialResumeData, null, 2)
-  );
+  const [jsonData, setJsonData] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return saved;
+    }
+    return JSON.stringify(initialResumeData, null, 2);
+  });
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
   const [htmlContent, setHtmlContent] = useState("");
   const [reactCode, setReactCode] = useState("");
   const [zoom, setZoom] = useState(70);
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving">("saved");
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { generatePdf, isGenerating, error } = useGeneratePdf();
+
+  // Auto-save to localStorage (debounced)
+  useEffect(() => {
+    setSaveStatus("saving");
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      try {
+        JSON.parse(jsonData);
+        localStorage.setItem(STORAGE_KEY, jsonData);
+      } catch {
+        // Don't persist broken JSON
+      }
+      setSaveStatus("saved");
+    }, 500);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [jsonData]);
 
   // Update resume data when JSON changes
   useEffect(() => {
@@ -53,6 +79,12 @@ export default function TabbedResumeBuilder() {
     }
   }, [resumeData, jsonError]);
 
+  const handleReset = () => {
+    const defaultData = JSON.stringify(initialResumeData, null, 2);
+    setJsonData(defaultData);
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
   const handleJsonChange = (value: string | undefined) => {
     if (value !== undefined) {
       setJsonData(value);
@@ -72,17 +104,17 @@ export default function TabbedResumeBuilder() {
   };
 
   return (
-    <div className="h-screen bg-zinc-900 p-4 flex flex-col overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 flex-1">
+    <div className="h-screen bg-zinc-900 p-3 flex flex-col overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5 flex-1 min-h-0">
         {/* Left Panel - Tabbed Editors */}
-        <div className="flex flex-col bg-zinc-800 rounded-lg overflow-hidden">
+        <div className="flex flex-col bg-zinc-800 rounded-md overflow-hidden">
           {/* Add PDF Export Button in the header */}
           <div className="flex items-center justify-between p-3 bg-zinc-800 border-b border-zinc-700">
             <h2 className="text-zinc-100 font-medium">Resume Builder</h2>
             <Button
               onClick={handleDownloadPdf}
               disabled={isGenerating || !!jsonError}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 h-auto"
+              className="bg-zinc-100 hover:bg-white text-zinc-900 font-medium text-xs px-3 py-1.5 h-auto"
             >
               {isGenerating ? (
                 <>
@@ -99,12 +131,12 @@ export default function TabbedResumeBuilder() {
           </div>
 
           {error && (
-            <div className="mx-3 mt-2 p-2 bg-red-900/20 border border-red-700 rounded text-red-400 text-xs">
+            <div className="mx-3 mt-2 p-2 bg-zinc-700/50 border border-zinc-600 rounded text-zinc-300 text-xs">
               PDF Export Error: {error}
             </div>
           )}
 
-          <Tabs defaultValue="json" className="flex flex-col h-full">
+          <Tabs defaultValue="json" className="flex flex-col flex-1 min-h-0">
             <TabsList className="grid w-full grid-cols-2 bg-zinc-800 border-b border-zinc-700">
               <TabsTrigger
                 value="json"
@@ -120,55 +152,82 @@ export default function TabbedResumeBuilder() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="json" className="flex-1 m-0">
-              <div className="flex flex-col h-full">
+            <TabsContent value="json" className="flex-1 m-0 min-h-0 overflow-hidden">
+              <div className="flex flex-col h-full min-h-0">
                 <div className="flex items-center justify-between p-3 bg-zinc-800 border-b border-zinc-700">
-                  <h2 className="text-zinc-100 font-medium">Resume Data</h2>
-                  {jsonError && (
-                    <span className="text-red-400 text-xs bg-red-900/20 px-2 py-1 rounded">
-                      {jsonError}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-zinc-100 font-medium">Resume Data</h2>
+                    <Badge
+                      variant="outline"
+                      className={`text-xs border-zinc-700 bg-transparent transition-opacity duration-300 ${
+                        saveStatus === "saving"
+                          ? "text-zinc-400 opacity-70"
+                          : "text-zinc-500"
+                      }`}
+                    >
+                      {saveStatus === "saving" ? "Saving..." : "Saved"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {jsonError && (
+                      <span className="text-zinc-200 text-xs bg-zinc-600 font-medium px-2 py-1 rounded">
+                        {jsonError}
+                      </span>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleReset}
+                      className="h-7 px-2 text-xs text-zinc-400 hover:text-white hover:bg-zinc-700"
+                    >
+                      <RotateCcw className="w-3 h-3 mr-1" />
+                      Reset
+                    </Button>
+                  </div>
                 </div>
-                <Editor
-                  height="100%"
-                  language="json"
-                  theme="vs-dark"
-                  value={jsonData}
-                  onChange={handleJsonChange}
-                  options={{
-                    fontSize: 14,
-                    lineHeight: 1.5,
-                    fontFamily:
-                      "'JetBrains Mono', 'Fira Code', Consolas, monospace",
-                    minimap: { enabled: false },
-                    scrollBeyondLastLine: false,
-                    wordWrap: "on",
-                    wordWrapColumn: 80,
-                    wrappingIndent: "indent",
-                    lineNumbers: "on",
-                    folding: true,
-                    bracketPairColorization: { enabled: true },
-                    autoIndent: "full",
-                    formatOnPaste: true,
-                    formatOnType: true,
-                    tabSize: 2,
-                    insertSpaces: true,
-                    smoothScrolling: true,
-                    scrollbar: {
-                      horizontal: "auto",
-                      vertical: "auto",
-                      horizontalScrollbarSize: 12,
-                      verticalScrollbarSize: 12,
-                    },
-                    automaticLayout: true,
-                  }}
-                />
+                <div className="flex-1 min-h-0 relative">
+                  <div className="absolute inset-0">
+                  <Editor
+                    height="100%"
+                    language="json"
+                    theme="vs-dark"
+                    value={jsonData}
+                    onChange={handleJsonChange}
+                    options={{
+                      fontSize: 14,
+                      lineHeight: 1.5,
+                      fontFamily:
+                        "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+                      minimap: { enabled: false },
+                      scrollBeyondLastLine: false,
+                      wordWrap: "on",
+                      wordWrapColumn: 80,
+                      wrappingIndent: "indent",
+                      lineNumbers: "on",
+                      folding: true,
+                      bracketPairColorization: { enabled: true },
+                      autoIndent: "full",
+                      formatOnPaste: true,
+                      formatOnType: true,
+                      tabSize: 2,
+                      insertSpaces: true,
+                      smoothScrolling: true,
+                      scrollbar: {
+                        horizontal: "auto",
+                        vertical: "auto",
+                        horizontalScrollbarSize: 12,
+                        verticalScrollbarSize: 12,
+                      },
+                      automaticLayout: true,
+                    }}
+                  />
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="react" className="flex-1 m-0">
-              <div className="flex flex-col h-full">
+            <TabsContent value="react" className="flex-1 m-0 min-h-0 overflow-hidden">
+              <div className="flex flex-col h-full min-h-0">
                 <div className="flex items-center justify-between p-3 bg-zinc-800 border-b border-zinc-700">
                   <h2 className="text-zinc-100 font-medium">
                     Generated React Component
@@ -180,45 +239,49 @@ export default function TabbedResumeBuilder() {
                     Read-only
                   </Badge>
                 </div>
-                <Editor
-                  height="100%"
-                  language="typescript"
-                  theme="vs-dark"
-                  value={reactCode}
-                  options={{
-                    readOnly: true,
-                    fontSize: 14,
-                    lineHeight: 1.5,
-                    fontFamily:
-                      "'JetBrains Mono', 'Fira Code', Consolas, monospace",
-                    minimap: { enabled: false },
-                    scrollBeyondLastLine: false,
-                    wordWrap: "on",
-                    wordWrapColumn: 80,
-                    wrappingIndent: "indent",
-                    lineNumbers: "on",
-                    folding: true,
-                    bracketPairColorization: { enabled: true },
-                    tabSize: 2,
-                    smoothScrolling: true,
-                    scrollbar: {
-                      horizontal: "auto",
-                      vertical: "auto",
-                      horizontalScrollbarSize: 12,
-                      verticalScrollbarSize: 12,
-                    },
-                    automaticLayout: true,
-                  }}
-                />
+                <div className="flex-1 min-h-0 relative">
+                  <div className="absolute inset-0">
+                  <Editor
+                    height="100%"
+                    language="typescript"
+                    theme="vs-dark"
+                    value={reactCode}
+                    options={{
+                      readOnly: true,
+                      fontSize: 14,
+                      lineHeight: 1.5,
+                      fontFamily:
+                        "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+                      minimap: { enabled: false },
+                      scrollBeyondLastLine: false,
+                      wordWrap: "on",
+                      wordWrapColumn: 80,
+                      wrappingIndent: "indent",
+                      lineNumbers: "on",
+                      folding: true,
+                      bracketPairColorization: { enabled: true },
+                      tabSize: 2,
+                      smoothScrolling: true,
+                      scrollbar: {
+                        horizontal: "auto",
+                        vertical: "auto",
+                        horizontalScrollbarSize: 12,
+                        verticalScrollbarSize: 12,
+                      },
+                      automaticLayout: true,
+                    }}
+                  />
+                  </div>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
         </div>
 
         {/* Right Panel - Preview */}
-        <div className="flex flex-col bg-zinc-800 rounded-lg overflow-hidden">
+        <div className="flex flex-col bg-zinc-800 rounded-md overflow-hidden">
           {/* Zoom Controls */}
-          <div className="flex items-center justify-between p-4 bg-zinc-800 border-b border-zinc-700">
+          <div className="flex items-center justify-between p-3 bg-zinc-800 border-b border-zinc-700">
             <div className="flex items-center gap-3">
               <Button
                 variant="secondary"
@@ -287,10 +350,10 @@ export default function TabbedResumeBuilder() {
           </div>
 
           {/* Preview Container */}
-          <div className="flex-1 overflow-auto bg-black p-6">
+          <div className="flex-1 overflow-auto bg-black p-4">
             <div className="flex justify-center">
               <div
-                className="bg-white rounded-lg shadow-2xl"
+                className="bg-white rounded-sm shadow-xl"
                 style={{
                   transform: `scale(${zoom / 100})`,
                   transformOrigin: "top center",
